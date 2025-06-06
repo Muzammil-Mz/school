@@ -1,28 +1,34 @@
 import express from "express";
-import path from "path"; // new line
-import { fileURLToPath } from "url"; // new line
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url); // new line
-const __dirname = path.dirname(__filename); // new line
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 5003;
+const PORT = 5000;
 
-app.use(express.static(path.join(__dirname, "build"))); // new line
+app.use(express.json());
 
-app.get("/suhail", (req, res) => {
-    try {
-        res.status(200).json({ message: "Hello, Suhail!" });
-    } catch (error) {
-        res.status(500).json({ message: error });
-    }
+const buildPath = path.join(__dirname, "build");
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  app.get("/*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+}
+
+app.use((req, res) => {
+  res.status(404).send("404 - Not Found");
 });
 
-// new 3 lines
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("500 - Internal Server Error");
 });
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on PORT 🚀 ${PORT}`);
 });
